@@ -193,14 +193,14 @@ int ext_modules::stat_qam_with_noise(modulator::Qam_modulator* modulator,
 		if (!noiser.make_noise(input, output)) return -22;
 		output.close();
 
-		/*if (fabs((noise / 0.2 - round(noise / 0.2))) < 1e-3) {
+		if (fabs((noise / 0.2 - round(noise / 0.2))) < 1e-3) {
 			read_binary_file("data_complex_noised.bin", input_2);
 			string name = "./stat/stat_constellation_" + string(prefix) + "_" + to_string(noise) + ".csv";
 			write_binary_file(name.c_str(), output);
 			stat_constellation(input_2, output);
 			input_2.close();
 			output.close();
-		}*/
+		}
 
 		read_binary_file("data_complex_noised.bin", input_2);
 		write_binary_file("data_after.bin", output);

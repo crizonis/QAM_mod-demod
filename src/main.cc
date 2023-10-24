@@ -3,7 +3,7 @@
 #include <vector>
 #include "./other_libs/ext_modules.h"
 
-#define SIZE_OF_TEST_DATA 1000
+#define SIZE_OF_TEST_DATA 10000
 
 using namespace std;
 using namespace ext_modules;
