@@ -1,5 +1,5 @@
 #include "ext_modules.h"
-#include "./qam_classes/generator_gauss_noise.h"
+#include "../qam_classes/generator_gauss_noise.h"
 #include <fstream>
 #include <iostream>
 #include <iomanip>
@@ -12,7 +12,7 @@
 using namespace std;
 
 void ext_modules::generate_data(ofstream &source, unsigned int n) {
-	srand(time(0));
+	srand((unsigned int)time(0));
 	
 	for (unsigned int i = 0; i < n; i++) {
 		uint8_t one_byte = rand() % 256;
@@ -147,7 +147,7 @@ uint8_t ext_modules::compare_bits_of_byte(uint8_t a, uint8_t b) {
 	uint8_t total = 0;
 	a ^= b;
 	for (uint8_t i=0; i < 8; ++i)
-		if (a & (1 << i) == 1) total++;	
+		if ((a & (1 << i)) == 1) total++;	
 	return total;
 }
 

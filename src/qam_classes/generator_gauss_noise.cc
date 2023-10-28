@@ -2,11 +2,11 @@
 #include <ctime>
 #include <cmath>
 
-Generator_gauss_noise::Generator_gauss_noise(){ srand(time(0)); }
+Generator_gauss_noise::Generator_gauss_noise(){ srand((unsigned int)time(0)); }
 
 Generator_gauss_noise::Generator_gauss_noise(double noise)
 {
-	srand(time(0));
+	srand((unsigned int)time(0));
 	noise_ = noise;
 }
 

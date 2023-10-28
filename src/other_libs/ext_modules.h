@@ -1,8 +1,8 @@
 #pragma once
 #include <fstream>
 #include <vector>
-#include "./qam_classes/qam_modulator.h"
-#include "./qam_classes/qam_demodulator.h"
+#include "../qam_classes/qam_modulator.h"
+#include "../qam_classes/qam_demodulator.h"
 using namespace std;
 
 
