@@ -30,8 +30,7 @@ complex<double> Generator_gauss_noise::add_noise(complex<double> value) {
 }
 
 bool Generator_gauss_noise::make_noise(ifstream &src, ofstream &dst) {
-  if (!src.is_open() || !dst.is_open())
-    return false;
+  if (!src.is_open() || !dst.is_open()) return false;
   complex<double> curr_value;
   while (src.read(reinterpret_cast<char *>(&curr_value), sizeof(curr_value))) {
     add_noise(&curr_value);
@@ -40,24 +39,19 @@ bool Generator_gauss_noise::make_noise(ifstream &src, ofstream &dst) {
   return true;
 }
 
-bool Generator_gauss_noise::make_noise(vector<complex<double>> src,
-                                       vector<complex<double>> dst) {
-  if (src.size() == 0)
-    return false;
+bool Generator_gauss_noise::make_noise(vector<complex<double>> src, vector<complex<double>> dst) {
+  if (src.size() == 0) return false;
   dst.clear();
-  for (vector<complex<double>>::const_iterator elem = src.begin();
-       elem != src.end(); ++elem) {
+  for (vector<complex<double>>::const_iterator elem = src.begin(); elem != src.end(); ++elem) {
     dst.push_back(add_noise(*elem));
   }
   return true;
 }
 
 bool Generator_gauss_noise::make_noise(vector<complex<double>> src) {
-  if (src.size() == 0)
-    return false;
-  for (vector<complex<double>>::const_iterator elem = src.begin();
-       elem != src.end(); ++elem) {
-    add_noise((complex<double> *)elem._Ptr);
+  if (src.size() == 0) return false;
+  for (vector<complex<double>>::const_iterator elem = src.begin(); elem != src.end(); ++elem) {
+    add_noise((complex<double> *)&elem);
   }
   return true;
 }

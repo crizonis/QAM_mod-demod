@@ -1,7 +1,10 @@
 #include "qam_demodulator.h"
 
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include <complex>
 #include <cstdint>
+#include <iostream>
 
 #ifndef QAM_BASES
 
@@ -14,7 +17,7 @@
 #define Q_AMP_2 3
 #define Q_AMP_3 5
 #define Q_AMP_4 7
-#define Q_DELTA 2  // distance between points of QAM Constellation
+#define Q_DELTA 2  // distance between points of QAM Constellation (before normalized)
 
 #define LOG4_16 2
 #define LOG4_64 3
@@ -24,8 +27,8 @@
 using namespace demodulator;
 
 struct borders {
-  int8_t left;
-  int8_t right;
+  double left;
+  double right;
 };
 
 const uint8_t Qam_demodulator_16::arr_quater_to_bits[4][4] = {
@@ -34,7 +37,7 @@ const uint8_t Qam_demodulator_16::arr_quater_to_bits[4][4] = {
 const uint8_t Qam_demodulator_64::arr_quater_to_bits[4][4] = {
     {0b00, 0b01, 0b10, 0b11}, {0b01, 0b00, 0b11, 0b10}, {0b10, 0b11, 0b00, 0b01}, {0b11, 0b10, 0b01, 0b00}};
 
-void Qam_demodulator::init_iofiles(ifstream& input, ofstream& output) {
+void Qam_demodulator::init_iofiles(ifstream &input, ofstream &output) {
   input_ = &input;
   output_ = &output;
 }
@@ -43,11 +46,11 @@ void Qam_demodulator_4::demodulate() const {
   complex<double> curr_value;
   uint8_t counter = 0;
   uint8_t value[4];
-  while (input_->read(reinterpret_cast<char*>(&curr_value), sizeof(curr_value))) {
+  while (input_->read(reinterpret_cast<char *>(&curr_value), sizeof(curr_value))) {
     value[counter] = complex_to_2_bits(curr_value);
     if (counter == 3) {
       uint8_t res = (value[3] << 6) + (value[2] << 4) + (value[1] << 2) + value[0];
-      output_->write(reinterpret_cast<char*>(&res), sizeof(res));
+      output_->write(reinterpret_cast<char *>(&res), sizeof(res));
       counter = 0;
     } else
       counter++;
@@ -58,11 +61,11 @@ void Qam_demodulator_16::demodulate() const {
   complex<double> curr_value;
   uint8_t counter = 0;
   uint8_t value[2];
-  while (input_->read(reinterpret_cast<char*>(&curr_value), sizeof(curr_value))) {
+  while (input_->read(reinterpret_cast<char *>(&curr_value), sizeof(curr_value))) {
     value[counter] = complex_to_4_bits(curr_value);
     if (counter > 0) {
       uint8_t res = (value[1] << 4) + value[0];
-      output_->write(reinterpret_cast<char*>(&res), sizeof(res));
+      output_->write(reinterpret_cast<char *>(&res), sizeof(res));
       counter = 0;
     } else
       counter++;
@@ -73,32 +76,32 @@ void Qam_demodulator_64::demodulate() const {
   complex<double> curr_value;
   uint8_t curr_byte, set_bits;
   uint8_t stage = 0;
-  while (input_->read(reinterpret_cast<char*>(&curr_value), sizeof(curr_value))) {
+  while (input_->read(reinterpret_cast<char *>(&curr_value), sizeof(curr_value))) {
     if (stage == 0) {
       curr_byte = complex_to_6_bits(curr_value);
       stage++;
     } else if (stage == 1) {
       set_bits = complex_to_6_bits(curr_value);
       curr_byte = (curr_byte << 2) + (set_bits >> 4);
-      output_->write(reinterpret_cast<char*>(&curr_byte), sizeof(curr_byte));
+      output_->write(reinterpret_cast<char *>(&curr_byte), sizeof(curr_byte));
       curr_byte = set_bits & 0xF;
       stage++;
     } else if (stage == 2) {
       set_bits = complex_to_6_bits(curr_value);
       curr_byte = (curr_byte << 4) + (set_bits >> 2);
-      output_->write(reinterpret_cast<char*>(&curr_byte), sizeof(curr_byte));
+      output_->write(reinterpret_cast<char *>(&curr_byte), sizeof(curr_byte));
       curr_byte = set_bits & 0b11;
       stage++;
     } else if (stage == 3) {
       set_bits = complex_to_6_bits(curr_value);
       curr_byte = (curr_byte << 6) + set_bits;
-      output_->write(reinterpret_cast<char*>(&curr_byte), sizeof(curr_byte));
+      output_->write(reinterpret_cast<char *>(&curr_byte), sizeof(curr_byte));
       stage = 0;
     }
   }
 }
 
-inline uint8_t Qam_demodulator::get_grey_quarter(complex<double> value, int8_t o_real, int8_t o_imag) const {
+inline uint8_t Qam_demodulator::get_grey_quarter(complex<double> value, double o_real, double o_imag) const {
   uint8_t result;
   if (value.imag() > o_imag)
     if (value.real() > o_real)
@@ -121,8 +124,10 @@ inline uint8_t Qam_demodulator_4::complex_to_2_bits(complex<double> value) const
 inline uint8_t Qam_demodulator_16::complex_to_4_bits(complex<double> value) const {
   uint8_t result = 0;
   uint8_t last_quater = 0;
-  borders borders_real = {-Q_AMP_2 - (Q_DELTA / 2), Q_AMP_2 + (Q_DELTA / 2)};
-  borders borders_imag = {-Q_AMP_2 - (Q_DELTA / 2), Q_AMP_2 + (Q_DELTA / 2)};
+  borders borders_real = {(-Q_AMP_2 - (Q_DELTA / 2)) / (Q_AMP_2 * M_SQRT2),
+                          (Q_AMP_2 + (Q_DELTA / 2)) / (Q_AMP_2 * M_SQRT2)};
+  borders borders_imag = {(-Q_AMP_2 - (Q_DELTA / 2)) / (Q_AMP_2 * M_SQRT2),
+                          (Q_AMP_2 + (Q_DELTA / 2)) / (Q_AMP_2 * M_SQRT2)};
   for (int i = 0; i < LOG4_16; ++i) {
     uint8_t curr_2_bits, curr_quater;
     curr_quater = get_grey_quarter(value, (borders_real.right + borders_real.left) / 2,
@@ -151,8 +156,10 @@ inline uint8_t Qam_demodulator_16::complex_to_4_bits(complex<double> value) cons
 inline uint8_t Qam_demodulator_64::complex_to_6_bits(complex<double> value) const {
   uint8_t result = 0;
   uint8_t last_quater = 0;
-  borders borders_real = {-Q_AMP_4 - (Q_DELTA / 2), Q_AMP_4 + (Q_DELTA / 2)};
-  borders borders_imag = {-Q_AMP_4 - (Q_DELTA / 2), Q_AMP_4 + (Q_DELTA / 2)};
+  borders borders_real = {(-Q_AMP_4 - (Q_DELTA / 2)) / (Q_AMP_4 * M_SQRT2),
+                          (Q_AMP_4 + (Q_DELTA / 2)) / (Q_AMP_4 * M_SQRT2)};
+  borders borders_imag = {(-Q_AMP_4 - (Q_DELTA / 2)) / (Q_AMP_4 * M_SQRT2),
+                          (Q_AMP_4 + (Q_DELTA / 2)) / (Q_AMP_4 * M_SQRT2)};
   for (int i = 0; i < LOG4_64; ++i) {
     uint8_t curr_2_bits, curr_quater;
     curr_quater = get_grey_quarter(value, (borders_real.right + borders_real.left) / 2,
@@ -178,8 +185,8 @@ inline uint8_t Qam_demodulator_64::complex_to_6_bits(complex<double> value) cons
   return result;
 }
 
-Qam_demodulator* Creator_Qam_4::FactoryMethod() const { return new Qam_demodulator_4(); }
+Qam_demodulator *Creator_Qam_4::FactoryMethod() const { return new Qam_demodulator_4(); }
 
-Qam_demodulator* Creator_Qam_16::FactoryMethod() const { return new Qam_demodulator_16(); }
+Qam_demodulator *Creator_Qam_16::FactoryMethod() const { return new Qam_demodulator_16(); }
 
-Qam_demodulator* Creator_Qam_64::FactoryMethod() const { return new Qam_demodulator_64(); }
+Qam_demodulator *Creator_Qam_64::FactoryMethod() const { return new Qam_demodulator_64(); }

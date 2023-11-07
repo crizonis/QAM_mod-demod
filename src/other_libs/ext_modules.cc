@@ -145,7 +145,7 @@ uint8_t ext_modules::compare_bits_of_byte(uint8_t a, uint8_t b) {
   uint8_t total = 0;
   a ^= b;
   for (uint8_t i = 0; i < 8; ++i)
-    if ((a & (1 << i)) == 1) total++;
+    if ((a & (1 << i)) != 0) total++;
   return total;
 }
 
@@ -182,7 +182,7 @@ int ext_modules::stat_qam_with_noise(modulator::Qam_modulator* modulator,
 
   Generator_gauss_noise noiser = Generator_gauss_noise();
   read_binary_file("data_complex.bin", input);
-  for (double noise = 0; noise - noise_limit < 1e-3; noise += 0.025) {
+  for (double noise = 0; noise - noise_limit < 1e-3; noise += 0.01) {
     input.clear();
     input.seekg(ios::beg);
     write_binary_file("data_complex_noised.bin", output);
@@ -190,10 +190,11 @@ int ext_modules::stat_qam_with_noise(modulator::Qam_modulator* modulator,
     if (!noiser.make_noise(input, output)) return -22;
     output.close();
 
-    if (fabs((noise / 0.2 - round(noise / 0.2))) < 1e-3) {
+    if (noise < 1.001 && fabs((noise / 0.05 - round(noise / 0.05))) < 1e-3) {
       read_binary_file("data_complex_noised.bin", input_2);
-      string name_stat_constellation =
-          "./stat/stat_constellation_" + string(prefix) + "_" + to_string(noise) + ".csv";
+      stringstream mark;
+      mark << prefix << "_" << std::fixed << std::setprecision(2) << noise;
+      string name_stat_constellation = "./stat/stat_constellation_" + mark.str() + ".csv";
       write_binary_file(name_stat_constellation.c_str(), output);
       stat_constellation(input_2, output);
       input_2.close();
@@ -237,7 +238,7 @@ int ext_modules::stat_all_qam_with_noise() {
     cout << stages[i] << endl;
     modulator::Qam_modulator* modulator = m_creators[i]->FactoryMethod();
     demodulator::Qam_demodulator* demodulator = d_creators[i]->FactoryMethod();
-    stat_qam_with_noise(modulator, demodulator, stages[i], 2);
+    stat_qam_with_noise(modulator, demodulator, stages[i], 5);
   }
 
   return 0;

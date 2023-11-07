@@ -1,5 +1,7 @@
 #include "qam_modulator.h"
 
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include <complex>
 #include <cstdint>
 
@@ -14,7 +16,7 @@
 #define Q_AMP_2 3
 #define Q_AMP_3 5
 #define Q_AMP_4 7
-#define Q_DELTA 2  // distance between points of QAM Constellation
+#define Q_DELTA 2  // distance between points of QAM Constellation (before normalized)
 
 #define log4_16 2;
 #define log4_64 3;
@@ -65,6 +67,7 @@ void Qam_modulator_4::modulate() const {
       value.real(arr_qam4_real[low_2_bits]);
       value.imag(arr_qam4_imag[low_2_bits]);
       one_byte >>= 2;
+      value /= M_SQRT2;
       output_->write(reinterpret_cast<char*>(&value), sizeof(value));
     }
   }
@@ -79,6 +82,7 @@ void Qam_modulator_16::modulate() const {
       value.real(arr_qam16_real[low_4_bits]);
       value.imag(arr_qam16_imag[low_4_bits]);
       one_byte >>= 4;
+      value /= (Q_AMP_2 * M_SQRT2);
       output_->write(reinterpret_cast<char*>(&value), sizeof(value));
     }
   }
@@ -100,13 +104,14 @@ void Qam_modulator_64::modulate() const {
     } else if (stage == 2) {
       set_6_bits = (remainder << 2) + (one_byte >> 6);
       complex<double> value(arr_qam64_real[set_6_bits], arr_qam64_imag[set_6_bits]);
+      value /= (Q_AMP_4 * M_SQRT2);
       output_->write(reinterpret_cast<char*>(&value), sizeof(value));
-
       set_6_bits = one_byte & 0b111111;
       stage = 0;
     }
 
     complex<double> value(arr_qam64_real[set_6_bits], arr_qam64_imag[set_6_bits]);
+    value /= (Q_AMP_4 * M_SQRT2);
     output_->write(reinterpret_cast<char*>(&value), sizeof(value));
   }
 
@@ -116,6 +121,7 @@ void Qam_modulator_64::modulate() const {
     else
       remainder <<= 2;
     complex<double> value(arr_qam64_real[remainder], arr_qam64_imag[remainder]);
+    value /= (Q_AMP_4 * M_SQRT2);
     output_->write(reinterpret_cast<char*>(&value), sizeof(value));
   }
 }

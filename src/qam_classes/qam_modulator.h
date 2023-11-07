@@ -1,5 +1,6 @@
 #pragma once
 
+#define _USE_MATH_DEFINES
 #include <cstdint>
 #include <fstream>
 using namespace std;

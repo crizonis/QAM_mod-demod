@@ -23,11 +23,10 @@ def draw_graf(axis_x_: list, axis_y_: list) -> None:
     axes.tick_params(axis='x', colors='black')
     axes.tick_params(axis='y', colors='black')
 
-    x_ticks = list(range(-1, int(min(axis_x_)), -2))[::-1] + [0] + list(range(1, int(max(axis_x_)), 2))
-    y_ticks = list(range(-1, int(min(axis_y_)), -2))[::-1] + [0] + list(range(1, int(max(axis_y_)), 2))
-    plt.xticks(x_ticks)
-    plt.yticks(y_ticks)
-    plt.setp(graf, markersize=max(x_ticks)/15)
+    ticks = [x/10 for x in range(-12, 13, 2)]
+    plt.xticks(ticks)
+    plt.yticks(ticks)
+    plt.setp(graf, markersize=0.5)
     plt.grid(color='#884444', visible=True)
     plt.title("QAM constellation \n(I-Q)")
 

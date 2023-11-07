@@ -1,5 +1,6 @@
 #pragma once
 
+#define _USE_MATH_DEFINES
 #include <complex>
 #include <fstream>
 
@@ -12,7 +13,7 @@ class Qam_demodulator {
   void init_iofiles(ifstream& input, ofstream& output);
 
  protected:
-  inline uint8_t get_grey_quarter(complex<double> value, int8_t o_real, int8_t o_imag) const;
+  inline uint8_t get_grey_quarter(complex<double> value, double o_real, double o_imag) const;
   ifstream* input_;
   ofstream* output_;
 };
